@@ -17,7 +17,7 @@
 <!-- APP BAR -->
 <div class="app-bar">
   <h1>💰 FinTrack</h1>
-  <button class="month-pill" id="monthPill"><i class="ti ti-calendar"></i> Jan</button>
+  <button class="month-pill" id="monthPill"><i class="ti ti-calendar"></i> Jun</button>
 </div>
 
 <!-- MONTH PICKER SHEET -->
@@ -33,7 +33,6 @@
 <div class="view active" id="homeView">
   <div class="scroll-area">
 
-    <!-- Salary -->
     <div class="salary-card">
       <label>Monthly Take-Home Salary</label>
       <div class="salary-input-row">
@@ -42,37 +41,33 @@
       </div>
     </div>
 
-    <!-- Summary -->
     <div class="summary-row">
       <div class="sum-card green-card">
         <div class="slabel">Net Savings</div>
-        <div class="sval" id="sSavings" style="color:var(--green-text)">₹0</div>
-        <div class="ssub" id="sSavPct">0% rate</div>
+        <div class="sval" id="s-savings" style="color:var(--green-text)">₹0</div>
+        <div class="ssub" id="s-sav-pct">0% rate</div>
       </div>
       <div class="sum-card red-card">
         <div class="slabel">Total Spent</div>
-        <div class="sval" id="sSpent" style="color:var(--red-text)">₹0</div>
-        <div class="ssub" id="sPct">0% of income</div>
+        <div class="sval" id="s-spent" style="color:var(--red-text)">₹0</div>
+        <div class="ssub" id="s-pct">0% of income</div>
       </div>
       <div class="sum-card" id="remCard" style="grid-column:span 2">
         <div class="slabel">Remaining Balance</div>
-        <div class="sval" id="sRemaining">₹0</div>
-        <div class="ssub" id="sRemNote">Left this month</div>
+        <div class="sval" id="s-remaining">₹0</div>
+        <div class="ssub" id="s-rem-note">Left this month</div>
       </div>
     </div>
 
-    <!-- Alert -->
     <div class="alert" id="alertBanner"></div>
 
-    <!-- Progress -->
     <div class="prog-block">
       <div class="prog-header"><span>Expense ratio</span><span id="expPctLabel">0%</span></div>
       <div class="prog-track"><div class="prog-fill" id="expFill" style="width:0%"></div></div>
-      <div class="breakdown-bar" id="bbar" style="margin-top:12px"></div>
+      <div class="breakdown-bar" id="bbar"></div>
       <div class="legend-wrap" id="bleg"></div>
     </div>
 
-    <!-- Savings Goal -->
     <div class="goal-card">
       <label>Monthly Savings Goal</label>
       <div class="goal-input-row">
@@ -80,12 +75,15 @@
         <input type="number" inputmode="numeric" id="goalInput" placeholder="e.g. 15000" />
       </div>
       <div id="goalProg" style="display:none">
-        <div class="goal-prog-label"><span>Progress</span><span id="goalLabel"></span><span id="goalPct"></span></div>
+        <div class="goal-prog-label">
+          <span>Progress</span>
+          <span id="goalLabel"></span>
+          <span id="goalPct"></span>
+        </div>
         <div class="prog-track"><div class="prog-fill" id="goalFill" style="width:0%"></div></div>
       </div>
     </div>
 
-    <!-- Tips -->
     <div class="tips-card">
       <div class="tips-title">💡 Smart Insights</div>
       <div id="tipsList"></div>
@@ -103,15 +101,27 @@
 <div class="view" id="analyticsView">
   <div class="scroll-area">
     <div class="prog-block" style="margin-bottom:14px">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
-        <div><div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Income</div><div style="font-size:18px;font-weight:700" id="aSalary">₹0</div></div>
-        <div><div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Expenses</div><div style="font-size:18px;font-weight:700;color:var(--red-text)" id="aExpenses">₹0</div></div>
-        <div><div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Savings</div><div style="font-size:18px;font-weight:700;color:var(--green-text)" id="aSavings">₹0</div></div>
-        <div><div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Savings Rate</div><div style="font-size:18px;font-weight:700;color:var(--green-text)" id="aSavRate">0%</div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Income</div>
+          <div style="font-size:18px;font-weight:700" id="aSalary">₹0</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Expenses</div>
+          <div style="font-size:18px;font-weight:700;color:var(--red-text)" id="aExpenses">₹0</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Savings</div>
+          <div style="font-size:18px;font-weight:700;color:var(--green-text)" id="aSavings">₹0</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Savings Rate</div>
+          <div style="font-size:18px;font-weight:700;color:var(--green-text)" id="aSavRate">0%</div>
+        </div>
       </div>
     </div>
     <div class="prog-block">
-      <div class="tips-title" style="margin-bottom:12px">Spend by Category</div>
+      <div class="tips-title" style="margin-bottom:14px">Spend by Category</div>
       <div id="analyticsList"></div>
     </div>
   </div>
