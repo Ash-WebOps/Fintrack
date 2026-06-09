@@ -306,5 +306,5 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('monthPill').addEventListener('click', openSheet);
   document.getElementById('sheetBackdrop').addEventListener('click', e => { if (e.target === document.getElementById('sheetBackdrop')) closeSheet(); });
   loadData();
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('/Fintrack/sw.js').catch(()=>{});
 });
