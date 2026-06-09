@@ -1,5 +1,14 @@
-const CACHE = 'fintrack-v1';
-const ASSETS = ['/', '/index.html', '/css/style.css', '/js/app.js', '/manifest.json'];
+const CACHE = 'fintrack-v2';
+const BASE = '/Fintrack';
+const ASSETS = [
+  BASE + '/',
+  BASE + '/index.html',
+  BASE + '/css/style.css',
+  BASE + '/js/app.js',
+  BASE + '/manifest.json',
+  BASE + '/icons/icon-192.png',
+  BASE + '/icons/icon-512.png'
+];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
@@ -12,5 +21,5 @@ self.addEventListener('fetch', e => {
     const clone = res.clone();
     caches.open(CACHE).then(c => c.put(e.request, clone));
     return res;
-  }).catch(() => caches.match('/index.html'))));
+  }).catch(() => caches.match(BASE + '/index.html'))));
 });
