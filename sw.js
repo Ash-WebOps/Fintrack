@@ -1,25 +1,32 @@
-const CACHE = 'fintrack-v2';
+// Force update: change this version number every time you deploy
+const CACHE_VERSION = 'fintrack-v3';
 const BASE = '/Fintrack';
-const ASSETS = [
-  BASE + '/',
-  BASE + '/index.html',
-  BASE + '/css/style.css',
-  BASE + '/js/app.js',
-  BASE + '/manifest.json',
-  BASE + '/icons/icon-192.png',
-  BASE + '/icons/icon-512.png'
-];
 
-self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+self.addEventListener('install', () => {
+  // Skip waiting immediately — don't hold onto old SW
+  self.skipWaiting();
 });
+
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
+  // Delete ALL old caches on activate
+  e.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.map(k => caches.delete(k)))
+    ).then(() => self.clients.claim())
+  );
 });
+
 self.addEventListener('fetch', e => {
-  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request).then(res => {
-    const clone = res.clone();
-    caches.open(CACHE).then(c => c.put(e.request, clone));
-    return res;
-  }).catch(() => caches.match(BASE + '/index.html'))));
+  // Network first — always try to get fresh from server
+  // Fall back to cache ONLY if truly offline
+  e.respondWith(
+    fetch(e.request)
+      .then(res => {
+        // Save a fresh copy in cache
+        const clone = res.clone();
+        caches.open(CACHE_VERSION).then(c => c.put(e.request, clone));
+        return res;
+      })
+      .catch(() => caches.match(e.request))
+  );
 });
