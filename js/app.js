@@ -27,7 +27,8 @@ const CATS = [
     {id:'salon', label:'Personal Care / Salon'},
     {id:'entertainment', label:'Movies / Events'},
     {id:'kids', label:'Kids School / Tuition'},
-    {id:'books', label:'Books / Courses'}
+    {id:'books', label:'Books / Courses'},
+    {id:'mobile_repair', label:'Mobile / Gadget Repair'}
   ]},
   { id:'health', label:'Health', color:'#e05555', items:[
     {id:'doctor', label:'Doctor / Clinic Visits'},
@@ -64,18 +65,16 @@ const CATS = [
   ]}
 ];
 
-const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const monthsShort = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-
 let activeMonth = new Date().getMonth();
-let activeView = 'home';
 
 // ---- Storage ----
 function sk(m, id) { return `ft2_${m}_${id}`; }
 function sv(m, id, val) { try { localStorage.setItem(sk(m,id), val); } catch(e){} }
 function gv(m, id) { try { return localStorage.getItem(sk(m,id)) || ''; } catch(e){ return ''; } }
+function fmt(n) { return '₹' + Math.round(n).toLocaleString('en-IN'); }
 
-// ---- Build DOM ----
+// ---- Build expense inputs ----
 function buildExpenses() {
   const container = document.getElementById('expenseContainer');
   container.innerHTML = '';
@@ -116,16 +115,10 @@ function buildMonthSheet() {
     grid.appendChild(b);
   });
 }
+function openSheet() { buildMonthSheet(); document.getElementById('sheetBackdrop').classList.add('open'); }
+function closeSheet() { document.getElementById('sheetBackdrop').classList.remove('open'); }
 
-function openSheet() {
-  buildMonthSheet();
-  document.getElementById('sheetBackdrop').classList.add('open');
-}
-function closeSheet() {
-  document.getElementById('sheetBackdrop').classList.remove('open');
-}
-
-// ---- Load / Save ----
+// ---- Load data ----
 function loadData() {
   document.getElementById('salaryInput').value = gv(activeMonth, 'salary');
   document.getElementById('goalInput').value = gv(activeMonth, 'goal');
@@ -133,13 +126,11 @@ function loadData() {
     const el = document.getElementById('inp-' + item.id);
     if (el) el.value = gv(activeMonth, item.id);
   }));
-  document.getElementById('monthPill').innerHTML = `<i class="ti ti-calendar"></i>${monthsShort[activeMonth]}`;
+  document.getElementById('monthPill').innerHTML = `<i class="ti ti-calendar"></i> ${monthsShort[activeMonth]}`;
   recalc();
 }
 
-// ---- Recalculate ----
-function fmt(n) { return '₹' + Math.round(n).toLocaleString('en-IN'); }
-
+// ---- Recalculate everything ----
 function recalc() {
   sv(activeMonth, 'salary', document.getElementById('salaryInput').value);
   sv(activeMonth, 'goal', document.getElementById('goalInput').value);
@@ -167,144 +158,156 @@ function recalc() {
   const savRate = salary > 0 ? totalSav / salary * 100 : 0;
   const expRate = salary > 0 ? totalExp / salary * 100 : 0;
 
-  // Summary cards
-  document.getElementById('sIncome').textContent = fmt(salary);
-  document.getElementById('sSpent').textContent = fmt(totalExp);
-  document.getElementById('sPct').textContent = salary > 0 ? Math.round(expRate) + '% of income' : '—';
-  document.getElementById('sRemaining').textContent = fmt(remaining);
-  document.getElementById('sRemNote').textContent = remaining < 0 ? 'Overspent!' : 'Left this month';
-  document.getElementById('sSavings').textContent = fmt(totalSav);
-  document.getElementById('sSavPct').textContent = Math.round(savRate) + '% savings rate';
+  // ---- Home view summary cards ----
+  setText('s-income', fmt(salary));
+  setText('s-spent', fmt(totalExp));
+  setText('s-pct', salary > 0 ? Math.round(expRate) + '% of income' : '—');
+  setText('s-remaining', fmt(remaining));
+  setText('s-rem-note', remaining < 0 ? 'Overspent!' : 'Left this month');
+  setText('s-savings', fmt(totalSav));
+  setText('s-sav-pct', Math.round(savRate) + '% savings rate');
 
-  // Card colors
   const remCard = document.getElementById('remCard');
-  remCard.className = 'sum-card ' + (remaining < 0 ? 'red-card' : remaining < salary * 0.05 ? 'amber-card' : '');
-  document.getElementById('sRemaining').style.color = remaining < 0 ? 'var(--red-text)' : remaining < salary * 0.05 ? 'var(--amber-text)' : 'var(--text)';
+  if (remCard) remCard.className = 'sum-card' + (remaining < 0 ? ' red-card' : remaining < salary * 0.05 ? ' amber-card' : '');
 
-  // Progress bar
+  // ---- Progress bar ----
   const pct = salary > 0 ? Math.min(100, Math.round(expRate)) : 0;
   const fill = document.getElementById('expFill');
-  fill.style.width = pct + '%';
-  fill.style.background = pct > 80 ? '#e05555' : pct > 60 ? '#d4900a' : '#1D9E75';
-  document.getElementById('expPctLabel').textContent = pct + '%';
+  if (fill) { fill.style.width = pct + '%'; fill.style.background = pct > 80 ? '#e05555' : pct > 60 ? '#d4900a' : '#1D9E75'; }
+  setText('expPctLabel', pct + '%');
 
-  // Breakdown bar
+  // ---- Breakdown bar ----
   const bbar = document.getElementById('bbar');
   const bleg = document.getElementById('bleg');
-  bbar.innerHTML = ''; bleg.innerHTML = '';
-  if (totalOut > 0) {
-    CATS.forEach(cat => {
-      const v = catTotals[cat.id];
-      if (v <= 0) return;
-      const s = document.createElement('div');
-      s.className = 'seg'; s.style.flex = v; s.style.background = cat.color;
-      bbar.appendChild(s);
-      const li = document.createElement('div');
-      li.className = 'leg';
-      li.innerHTML = `<span class="leg-dot" style="background:${cat.color}"></span>${cat.label} ${fmt(v)}`;
-      bleg.appendChild(li);
-    });
-  }
-
-  // Alert
-  const alert = document.getElementById('alertBanner');
-  if (salary > 0 && totalOut > 0) {
-    if (remaining < 0) {
-      alert.className = 'alert over';
-      alert.innerHTML = '⚠️ Overspent by ' + fmt(Math.abs(remaining)) + ' this month!';
-    } else if (savRate < 10) {
-      alert.className = 'alert warn';
-      alert.innerHTML = '📉 Savings rate under 10%. Try to cut back on discretionary spend.';
-    } else if (savRate >= 20) {
-      alert.className = 'alert ok';
-      alert.innerHTML = '🎉 Excellent! Saving ' + Math.round(savRate) + '% of income this month.';
-    } else {
-      alert.className = 'alert'; alert.style.display = 'none';
+  if (bbar && bleg) {
+    bbar.innerHTML = ''; bleg.innerHTML = '';
+    if (totalOut > 0) {
+      CATS.forEach(cat => {
+        const v = catTotals[cat.id];
+        if (v <= 0) return;
+        const s = document.createElement('div');
+        s.className = 'seg'; s.style.flex = v; s.style.background = cat.color;
+        bbar.appendChild(s);
+        const li = document.createElement('div');
+        li.className = 'leg';
+        li.innerHTML = `<span class="leg-dot" style="background:${cat.color}"></span>${cat.label} ${fmt(v)}`;
+        bleg.appendChild(li);
+      });
     }
-  } else {
-    alert.className = 'alert'; alert.style.display = 'none';
   }
 
-  // Savings goal
+  // ---- Alert banner ----
+  const alertEl = document.getElementById('alertBanner');
+  if (alertEl) {
+    if (salary > 0 && totalOut > 0) {
+      if (remaining < 0) {
+        alertEl.className = 'alert over';
+        alertEl.innerHTML = '⚠️ Overspent by ' + fmt(Math.abs(remaining)) + ' this month!';
+      } else if (savRate < 10) {
+        alertEl.className = 'alert warn';
+        alertEl.innerHTML = '📉 Savings rate under 10%. Try to cut back on discretionary spend.';
+      } else if (savRate >= 20) {
+        alertEl.className = 'alert ok';
+        alertEl.innerHTML = '🎉 Saving ' + Math.round(savRate) + '% of income. Excellent discipline!';
+      } else {
+        alertEl.className = 'alert';
+      }
+    } else {
+      alertEl.className = 'alert';
+    }
+  }
+
+  // ---- Savings goal ----
   const goal = parseFloat(document.getElementById('goalInput').value) || 0;
   const gBlock = document.getElementById('goalProg');
-  if (goal > 0) {
-    gBlock.style.display = 'block';
-    const gpct = Math.min(100, Math.round(totalSav / goal * 100));
-    document.getElementById('goalFill').style.width = gpct + '%';
-    document.getElementById('goalFill').style.background = gpct >= 100 ? '#1D9E75' : gpct > 60 ? '#d4900a' : '#e05555';
-    document.getElementById('goalLabel').textContent = fmt(totalSav) + ' of ' + fmt(goal);
-    document.getElementById('goalPct').textContent = gpct + '%';
-  } else {
-    gBlock.style.display = 'none';
+  if (gBlock) {
+    if (goal > 0) {
+      gBlock.style.display = 'block';
+      const gpct = Math.min(100, Math.round(totalSav / goal * 100));
+      const goalFill = document.getElementById('goalFill');
+      if (goalFill) { goalFill.style.width = gpct + '%'; goalFill.style.background = gpct >= 100 ? '#1D9E75' : gpct > 60 ? '#d4900a' : '#e05555'; }
+      setText('goalLabel', fmt(totalSav) + ' of ' + fmt(goal));
+      setText('goalPct', gpct + '%');
+    } else {
+      gBlock.style.display = 'none';
+    }
   }
 
   buildTips(salary, catTotals, totalExp, totalSav, remaining, savRate);
   updateAnalytics(salary, catTotals, totalExp, totalSav, savRate);
 }
 
+function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+
 // ---- Tips ----
 function buildTips(salary, cats, totalExp, totalSav, remaining, savRate) {
   const tips = [];
   if (salary > 0) {
-    if (cats.housing / salary > 0.3) tips.push({icon:'🏠', text:'Housing is over 30% of income. The ideal is ≤30% — review rent vs. commute tradeoffs.'});
-    if (savRate < 20) tips.push({icon:'💰', text:'Aim for 20%+ savings. The 50-30-20 rule: 50% needs, 30% wants, 20% savings works well.'});
-    if (cats.food > salary * 0.2) tips.push({icon:'🍱', text:'Food spending is high. Home cooking vs. ordering out can save ₹3,000–8,000/month.'});
-    if (cats.emi > salary * 0.4) tips.push({icon:'📋', text:'EMIs above 40% of income is risky. Prioritise prepaying high-interest personal loans first.'});
-    if (cats.savings === 0) tips.push({icon:'📈', text:'No investments yet! A ₹1,000/month SIP over 20 years at 12% CAGR = ₹9.9 lakh.'});
-    if (cats.health < 800 && salary > 30000) tips.push({icon:'🏥', text:'No health insurance tracked. A family floater for ₹5L cover starts at ~₹8,000/year.'});
-    if (remaining > salary * 0.15) tips.push({icon:'💡', text:fmt(remaining) + ' is unallocated. Park it in a liquid fund or start/top-up an SIP.'});
-    if (cats.other > 0 && cats.parents === 0 && salary > 50000) tips.push({icon:'👨‍👩‍👧', text:'Consider allocating a fixed amount for parents. Many Indian families under-plan for this.'});
+    if (cats.housing / salary > 0.3) tips.push({icon:'🏠', text:'Housing is over 30% of income. Ideal is ≤30% — review rent vs. commute tradeoffs.'});
+    if (savRate < 20) tips.push({icon:'💰', text:'Aim for 20%+ savings. The 50-30-20 rule: 50% needs, 30% wants, 20% savings works great.'});
+    if (cats.food > salary * 0.2) tips.push({icon:'🍱', text:'Food spending is high. Home cooking vs. ordering can save ₹3,000–8,000/month.'});
+    if (cats.emi > salary * 0.4) tips.push({icon:'📋', text:'EMIs above 40% of income is risky. Prepay high-interest loans first.'});
+    if (cats.savings === 0) tips.push({icon:'📈', text:'No investments tracked yet! ₹1,000/month SIP at 12% CAGR over 20 years = ₹9.9 lakh.'});
+    if (cats.health < 800 && salary > 30000) tips.push({icon:'🏥', text:'No health insurance tracked. A family floater ₹5L cover starts ~₹8,000/year.'});
+    if (remaining > salary * 0.15) tips.push({icon:'💡', text: fmt(remaining) + ' is unallocated. Park it in a liquid fund or top-up your SIP.'});
   }
-  if (tips.length === 0) tips.push({icon:'👆', text:'Enter your salary and expenses above to see personalised insights for your finances.'});
-  document.getElementById('tipsList').innerHTML = tips.map(t => `<div class="tip-row"><span class="tip-icon">${t.icon}</span><span>${t.text}</span></div>`).join('');
+  if (tips.length === 0) tips.push({icon:'👆', text:'Enter your salary and expenses above to see personalised insights.'});
+  const el = document.getElementById('tipsList');
+  if (el) el.innerHTML = tips.map(t => `<div class="tip-row"><span class="tip-icon">${t.icon}</span><span>${t.text}</span></div>`).join('');
 }
 
-// ---- Analytics view ----
+// ---- Analytics ----
 function updateAnalytics(salary, cats, totalExp, totalSav, savRate) {
-  if (!document.getElementById('analyticsView')) return;
-  const rows = CATS.map(c => ({ label: c.label, val: cats[c.id] || 0, color: c.color }))
-    .filter(r => r.val > 0).sort((a,b) => b.val - a.val);
+  setText('aSalary', fmt(salary));
+  setText('aExpenses', fmt(totalExp));
+  setText('aSavings', fmt(totalSav));
+  setText('aSavRate', Math.round(savRate) + '%');
+
   const list = document.getElementById('analyticsList');
   if (!list) return;
+  const rows = CATS.map(c => ({ label: c.label, val: cats[c.id] || 0, color: c.color }))
+    .filter(r => r.val > 0).sort((a, b) => b.val - a.val);
   list.innerHTML = '';
   rows.forEach(r => {
     const pct = salary > 0 ? (r.val / salary * 100).toFixed(1) : 0;
     const div = document.createElement('div');
-    div.style.cssText = 'margin-bottom:10px';
+    div.style.cssText = 'margin-bottom:12px';
     div.innerHTML = `
-      <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--text2);margin-bottom:4px">
-        <span style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:2px;background:${r.color};display:inline-block"></span>${r.label}</span>
-        <span style="color:var(--text);font-weight:600">${fmt(r.val)} <span style="color:var(--text3);font-weight:400">${pct}%</span></span>
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px">
+        <span style="display:flex;align-items:center;gap:6px;color:var(--text2)">
+          <span style="width:8px;height:8px;border-radius:2px;background:${r.color};display:inline-block;flex-shrink:0"></span>${r.label}
+        </span>
+        <span style="color:var(--text);font-weight:600">${fmt(r.val)} <span style="color:var(--text3);font-weight:400;font-size:12px">${pct}%</span></span>
       </div>
       <div style="height:6px;background:var(--surface2);border-radius:3px;overflow:hidden">
-        <div style="height:100%;width:${Math.min(100,pct)}%;background:${r.color};border-radius:3px"></div>
+        <div style="height:100%;width:${Math.min(100, pct)}%;background:${r.color};border-radius:3px;transition:width .4s ease"></div>
       </div>`;
     list.appendChild(div);
   });
-  document.getElementById('aSalary').textContent = fmt(salary);
-  document.getElementById('aExpenses').textContent = fmt(totalExp);
-  document.getElementById('aSavings').textContent = fmt(totalSav);
-  document.getElementById('aSavRate').textContent = Math.round(savRate) + '%';
 }
 
 // ---- Nav ----
 function switchView(v) {
-  activeView = v;
   document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
-  document.getElementById(v + 'View').classList.add('active');
-  document.getElementById('nav-' + v).classList.add('active');
+  const view = document.getElementById(v + 'View');
+  const nav = document.getElementById('nav-' + v);
+  if (view) view.classList.add('active');
+  if (nav) nav.classList.add('active');
   recalc();
 }
 
 // ---- Init ----
 document.addEventListener('DOMContentLoaded', () => {
   buildExpenses();
-  document.getElementById('salaryInput').addEventListener('input', recalc);
-  document.getElementById('goalInput').addEventListener('input', recalc);
-  document.getElementById('monthPill').addEventListener('click', openSheet);
-  document.getElementById('sheetBackdrop').addEventListener('click', e => { if (e.target === document.getElementById('sheetBackdrop')) closeSheet(); });
+  const salEl = document.getElementById('salaryInput');
+  const goalEl = document.getElementById('goalInput');
+  if (salEl) salEl.addEventListener('input', recalc);
+  if (goalEl) goalEl.addEventListener('input', recalc);
+  const pill = document.getElementById('monthPill');
+  if (pill) pill.addEventListener('click', openSheet);
+  const backdrop = document.getElementById('sheetBackdrop');
+  if (backdrop) backdrop.addEventListener('click', e => { if (e.target === backdrop) closeSheet(); });
   loadData();
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('/Fintrack/sw.js').catch(()=>{});
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('/Fintrack/sw.js').catch(() => {});
 });
