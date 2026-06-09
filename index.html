@@ -29,6 +29,48 @@
   </div>
 </div>
 
+<!-- ENTRY SHEET -->
+<div class="sheet-backdrop" id="entrySheetBackdrop">
+  <div class="sheet entry-sheet">
+    <div class="sheet-handle"></div>
+    <div class="entry-sheet-header">
+      <span class="entry-sheet-title" id="entrySheetTitle">Add Entry</span>
+      <button class="sheet-close-btn" onclick="closeEntrySheet()"><i class="ti ti-x"></i></button>
+    </div>
+
+    <div class="entry-form">
+      <div class="entry-form-row">
+        <div class="entry-field">
+          <label>Amount</label>
+          <div class="entry-input-wrap">
+            <span class="entry-sym">₹</span>
+            <input type="number" inputmode="decimal" id="entryAmountInput" placeholder="0" />
+          </div>
+        </div>
+        <div class="entry-field">
+          <label>Date</label>
+          <div class="entry-input-wrap">
+            <input type="date" id="entryDateInput" />
+          </div>
+        </div>
+      </div>
+      <div class="entry-field" style="margin-top:10px">
+        <label>Note <span style="opacity:.5">(optional)</span></label>
+        <div class="entry-input-wrap">
+          <input type="text" id="entryNoteInput" placeholder="e.g. cow milk 3 litres" maxlength="60" />
+        </div>
+      </div>
+      <button class="add-btn" onclick="addEntry()"><i class="ti ti-plus"></i> Add Entry</button>
+    </div>
+
+    <div class="entry-log-header">
+      <span>This month's entries</span>
+      <span id="entryLogTotal" style="font-weight:600;color:var(--green)"></span>
+    </div>
+    <div class="entry-log" id="entryLog"></div>
+  </div>
+</div>
+
 <!-- HOME VIEW -->
 <div class="view active" id="homeView">
   <div class="scroll-area">
@@ -101,23 +143,11 @@
 <div class="view" id="analyticsView">
   <div class="scroll-area">
     <div class="prog-block" style="margin-bottom:14px">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div>
-          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Income</div>
-          <div style="font-size:18px;font-weight:700" id="aSalary">₹0</div>
-        </div>
-        <div>
-          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Expenses</div>
-          <div style="font-size:18px;font-weight:700;color:var(--red-text)" id="aExpenses">₹0</div>
-        </div>
-        <div>
-          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Savings</div>
-          <div style="font-size:18px;font-weight:700;color:var(--green-text)" id="aSavings">₹0</div>
-        </div>
-        <div>
-          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Savings Rate</div>
-          <div style="font-size:18px;font-weight:700;color:var(--green-text)" id="aSavRate">0%</div>
-        </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div><div class="an-label">Income</div><div class="an-big" id="aSalary">₹0</div></div>
+        <div><div class="an-label">Expenses</div><div class="an-big" id="aExpenses" style="color:var(--red-text)">₹0</div></div>
+        <div><div class="an-label">Investments</div><div class="an-big" id="aSavings" style="color:var(--green-text)">₹0</div></div>
+        <div><div class="an-label">Savings Rate</div><div class="an-big" id="aSavRate" style="color:var(--green-text)">0%</div></div>
       </div>
     </div>
     <div class="prog-block">
