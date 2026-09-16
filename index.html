@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#1D9E75" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -9,70 +12,250 @@
   <meta name="apple-mobile-web-app-title" content="FinTrack" />
   <title>FinTrack India</title>
   <link rel="manifest" href="manifest.json" />
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/style.css?v=4001" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.7.0/dist/tabler-icons.min.css" />
 </head>
 <body>
 
-<!-- APP BAR -->
+<!-- ═══════════════════════════════ APP BAR ═══════════════════════════════ -->
 <div class="app-bar">
   <h1>💰 FinTrack</h1>
-  <button class="month-pill" id="monthPill"><i class="ti ti-calendar"></i> Jan</button>
+  <button class="month-pill" id="monthPill"><i class="ti ti-calendar"></i> Jun</button>
 </div>
 
-<!-- MONTH PICKER SHEET -->
-<div class="sheet-backdrop" id="sheetBackdrop">
+<!-- ══════════════════════════ MONTH PICKER SHEET ═════════════════════════ -->
+<div class="sheet-backdrop" id="monthSheetBackdrop">
   <div class="sheet">
     <div class="sheet-handle"></div>
-    <h2>Select Month</h2>
+    <p style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:14px">Select Month</p>
     <div class="month-grid" id="monthGrid"></div>
   </div>
 </div>
 
-<!-- HOME VIEW -->
+<!-- ═══════════════════════════ ENTRY SHEET ═══════════════════════════════ -->
+<div class="sheet-backdrop" id="entrySheetBackdrop">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title-row">
+      <span class="sheet-title" id="entrySheetTitle">Add Entry</span>
+      <button class="sheet-close" onclick="closeSheet('entrySheet')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="entry-form">
+      <div class="entry-form-grid">
+        <div class="ef-field">
+          <label>Amount</label>
+          <div class="ef-input">
+            <span class="sym">₹</span>
+            <input type="number" inputmode="decimal" id="entryAmountInput" placeholder="0" />
+          </div>
+        </div>
+        <div class="ef-field">
+          <label>Date</label>
+          <div class="ef-input">
+            <input type="date" id="entryDateInput" />
+          </div>
+        </div>
+        <div class="ef-field full">
+          <label>Note <span style="opacity:.45">(optional)</span></label>
+          <div class="ef-input">
+            <input type="text" id="entryNoteInput" placeholder="e.g. cow milk 3 litres" maxlength="60" />
+          </div>
+        </div>
+      </div>
+      <button class="add-btn" onclick="addEntry()"><i class="ti ti-plus"></i> Add Entry</button>
+    </div>
+    <div class="entry-log-hdr">
+      <span>This month's entries</span>
+      <span id="entryLogTotal" style="color:var(--green-text)"></span>
+    </div>
+    <div class="entry-log" id="entryLog"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════ ADD CUSTOM CATEGORY SHEET ══════════════════════ -->
+<div class="sheet-backdrop" id="addCatSheetBackdrop">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title-row">
+      <span class="sheet-title">New Category</span>
+      <button class="sheet-close" onclick="closeSheet('addCatSheet')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="cat-form">
+      <div class="cat-form-grid">
+        <div class="ef-field full">
+          <label>Category Name</label>
+          <div class="ef-input"><input type="text" id="newCatName" placeholder="e.g. Pet Care" /></div>
+        </div>
+        <div class="ef-field full">
+          <label>First Item (optional)</label>
+          <div class="ef-input"><input type="text" id="newCatItemName" placeholder="e.g. Vet bills" /></div>
+        </div>
+      </div>
+      <div style="margin-top:10px">
+        <div class="ef-field">
+          <label>Pick Colour</label>
+          <div class="color-swatches" id="catSwatches"></div>
+        </div>
+      </div>
+    </div>
+    <button class="add-btn" onclick="saveCustomCat()"><i class="ti ti-check"></i> Create Category</button>
+  </div>
+</div>
+
+<!-- ══════════════════════ ADD CUSTOM ITEM SHEET ══════════════════════════ -->
+<div class="sheet-backdrop" id="addItemSheetBackdrop">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title-row">
+      <span class="sheet-title">Add Expense Item</span>
+      <button class="sheet-close" onclick="closeSheet('addItemSheet')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="entry-form">
+      <div class="ef-field">
+        <label>Item Name</label>
+        <div class="ef-input"><input type="text" id="newItemName" placeholder="e.g. Swimming class" /></div>
+      </div>
+      <button class="add-btn" style="margin-top:12px" onclick="saveCustomItem()"><i class="ti ti-plus"></i> Add Item</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ MF ADD / EDIT SHEET ════════════════════════ -->
+<div class="sheet-backdrop" id="mfSheetBackdrop">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title-row">
+      <span class="sheet-title" id="mfSheetTitle">Add Mutual Fund</span>
+      <button class="sheet-close" onclick="closeSheet('mfSheet')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="entry-form">
+      <div class="entry-form-grid">
+
+        <div class="ef-field full">
+          <label>Search Fund Name</label>
+          <div class="ef-input"><input type="text" id="mfFundName" placeholder="e.g. Axis Bluechip" autocomplete="off" /></div>
+          <div class="mf-search-result" id="mfSearchResults"></div>
+        </div>
+
+        <div class="ef-field full">
+          <label>Scheme Code <span style="opacity:.45">(auto-filled from search)</span></label>
+          <div class="ef-input"><input type="number" inputmode="numeric" id="mfSchemeCode" placeholder="e.g. 120503" /></div>
+        </div>
+
+        <div class="ef-field full">
+          <label>Type</label>
+          <div class="ef-input" style="padding:4px 12px">
+            <select id="mfType" onchange="toggleSipRow()" style="background:transparent;border:none;outline:none;color:var(--text);font-size:15px;font-weight:600;font-family:var(--font);width:100%">
+              <option value="sip">SIP (Monthly)</option>
+              <option value="lumpsum">Lumpsum (One-time)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="ef-field">
+          <label>Units Held</label>
+          <div class="ef-input"><input type="number" inputmode="decimal" id="mfUnits" placeholder="0.000" /></div>
+        </div>
+        <div class="ef-field">
+          <label>Avg Buy NAV ₹</label>
+          <div class="ef-input"><input type="number" inputmode="decimal" id="mfAvgNav" placeholder="0.00" /></div>
+        </div>
+
+        <div class="ef-field full">
+          <label>Total Invested ₹ <span style="opacity:.45">(or units × avg NAV)</span></label>
+          <div class="ef-input">
+            <span class="sym">₹</span>
+            <input type="number" inputmode="decimal" id="mfInvested" placeholder="0" />
+          </div>
+        </div>
+
+        <div class="ef-field" id="mfSipRow" style="display:flex;flex-direction:column;gap:5px;grid-column:span 2">
+          <label>Monthly SIP Amount ₹</label>
+          <div class="ef-input">
+            <span class="sym">₹</span>
+            <input type="number" inputmode="decimal" id="mfSipAmt" placeholder="e.g. 5000" />
+          </div>
+        </div>
+
+        <div class="ef-field full">
+          <label>SIP Date (day of month)</label>
+          <div class="ef-input"><input type="number" inputmode="numeric" id="mfSipDate" placeholder="e.g. 5" min="1" max="31" /></div>
+        </div>
+
+      </div>
+      <button class="add-btn" onclick="saveMF()"><i class="ti ti-check"></i> Save Fund</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════ HOME VIEW ══════════════════════════════ -->
 <div class="view active" id="homeView">
   <div class="scroll-area">
 
     <!-- Salary -->
     <div class="salary-card">
       <label>Monthly Take-Home Salary</label>
-      <div class="salary-input-row">
+      <div class="salary-row">
         <span class="sym">₹</span>
         <input type="number" inputmode="numeric" id="salaryInput" placeholder="0" />
       </div>
     </div>
 
-    <!-- Summary -->
-    <div class="summary-row">
-      <div class="sum-card green-card">
-        <div class="slabel">Net Savings</div>
-        <div class="sval" id="sSavings" style="color:var(--green-text)">₹0</div>
-        <div class="ssub" id="sSavPct">0% rate</div>
+    <!-- Summary cards -->
+    <div class="sum-grid">
+      <div class="scard g">
+        <div class="slbl">Net Savings</div>
+        <div class="sval" id="s-savings" style="color:var(--green-text)">₹0</div>
+        <div class="ssub" id="s-sav-pct">0% rate</div>
       </div>
-      <div class="sum-card red-card">
-        <div class="slabel">Total Spent</div>
-        <div class="sval" id="sSpent" style="color:var(--red-text)">₹0</div>
-        <div class="ssub" id="sPct">0% of income</div>
+      <div class="scard r">
+        <div class="slbl">Total Spent</div>
+        <div class="sval" id="s-spent" style="color:var(--red-text)">₹0</div>
+        <div class="ssub" id="s-pct">0% of income</div>
       </div>
-      <div class="sum-card" id="remCard" style="grid-column:span 2">
-        <div class="slabel">Remaining Balance</div>
-        <div class="sval" id="sRemaining">₹0</div>
-        <div class="ssub" id="sRemNote">Left this month</div>
+      <div class="scard full" id="remCard">
+        <div class="slbl">Remaining Balance</div>
+        <div class="sval" id="s-remaining">₹0</div>
+        <div class="ssub" id="s-rem-note">Left this month</div>
       </div>
     </div>
 
     <!-- Alert -->
     <div class="alert" id="alertBanner"></div>
 
-    <!-- Progress -->
-    <div class="prog-block">
-      <div class="prog-header"><span>Expense ratio</span><span id="expPctLabel">0%</span></div>
-      <div class="prog-track"><div class="prog-fill" id="expFill" style="width:0%"></div></div>
-      <div class="breakdown-bar" id="bbar" style="margin-top:12px"></div>
-      <div class="legend-wrap" id="bleg"></div>
+    <!-- Donut + legend -->
+    <div class="prog-card">
+      <div class="prog-hdr"><span>This month's spend</span></div>
+      <div class="donut-wrap">
+        <svg id="donutSvg" class="donut-svg" viewBox="0 0 128 128" width="128" height="128"></svg>
+        <div class="donut-legend" id="donutLegend"></div>
+      </div>
+      <div class="bbar" id="bbar"></div>
+      <div class="bleg" id="bleg"></div>
     </div>
 
-    <!-- Savings Goal -->
+    <!-- Expense ratio -->
+    <div class="prog-card">
+      <div class="prog-hdr"><span>Expense ratio</span><span id="expPctLabel">0%</span></div>
+      <div class="prog-track"><div class="prog-fill" id="expFill" style="width:0%"></div></div>
+    </div>
+
+    <!-- Financial health score -->
+    <div class="health-card">
+      <div class="health-top">
+        <span class="health-title">💪 Financial Health Score</span>
+        <div>
+          <span class="health-score" id="healthScore">0</span>
+          <span style="font-size:13px;color:var(--text3)">/100</span>
+          <span style="font-size:12px;color:var(--text3);margin-left:6px" id="healthLabel"></span>
+        </div>
+      </div>
+      <div class="health-bar-wrap"><div class="health-bar" id="healthBar" style="width:0%"></div></div>
+      <div class="health-factors" id="healthFactors"></div>
+    </div>
+
+    <!-- Savings goal -->
     <div class="goal-card">
       <label>Monthly Savings Goal</label>
       <div class="goal-input-row">
@@ -80,12 +263,14 @@
         <input type="number" inputmode="numeric" id="goalInput" placeholder="e.g. 15000" />
       </div>
       <div id="goalProg" style="display:none">
-        <div class="goal-prog-label"><span>Progress</span><span id="goalLabel"></span><span id="goalPct"></span></div>
+        <div class="goal-prog-lbl">
+          <span>Progress</span><span id="goalLabel"></span><span id="goalPct"></span>
+        </div>
         <div class="prog-track"><div class="prog-fill" id="goalFill" style="width:0%"></div></div>
       </div>
     </div>
 
-    <!-- Tips -->
+    <!-- Smart insights -->
     <div class="tips-card">
       <div class="tips-title">💡 Smart Insights</div>
       <div id="tipsList"></div>
@@ -94,30 +279,54 @@
   </div>
 </div>
 
-<!-- EXPENSES VIEW -->
+<!-- ═════════════════════════════ EXPENSES VIEW ═══════════════════════════ -->
 <div class="view" id="expensesView">
   <div class="scroll-area" id="expenseContainer"></div>
 </div>
 
-<!-- ANALYTICS VIEW -->
+<!-- ══════════════════════════════ MF VIEW ════════════════════════════════ -->
+<div class="view" id="mfView">
+  <div class="scroll-area" id="mfContainer"></div>
+</div>
+
+<!-- ════════════════════════════ ANALYTICS VIEW ═══════════════════════════ -->
 <div class="view" id="analyticsView">
   <div class="scroll-area">
-    <div class="prog-block" style="margin-bottom:14px">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
-        <div><div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Income</div><div style="font-size:18px;font-weight:700" id="aSalary">₹0</div></div>
-        <div><div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Expenses</div><div style="font-size:18px;font-weight:700;color:var(--red-text)" id="aExpenses">₹0</div></div>
-        <div><div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Savings</div><div style="font-size:18px;font-weight:700;color:var(--green-text)" id="aSavings">₹0</div></div>
-        <div><div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Savings Rate</div><div style="font-size:18px;font-weight:700;color:var(--green-text)" id="aSavRate">0%</div></div>
+
+    <!-- Stats row -->
+    <div class="sum-grid" style="margin-bottom:12px">
+      <div class="scard g">
+        <div class="slbl">Income</div>
+        <div class="sval" style="font-size:18px" id="aSalary">₹0</div>
+      </div>
+      <div class="scard r">
+        <div class="slbl">Expenses</div>
+        <div class="sval" style="font-size:18px;color:var(--red-text)" id="aExpenses">₹0</div>
+      </div>
+      <div class="scard g">
+        <div class="slbl">Investments</div>
+        <div class="sval" style="font-size:18px;color:var(--green-text)" id="aSavings">₹0</div>
+      </div>
+      <div class="scard">
+        <div class="slbl">Savings Rate</div>
+        <div class="sval" style="font-size:18px;color:var(--green-text)" id="aSavRate">0%</div>
+      </div>
+      <div class="scard full">
+        <div class="slbl">Balance Remaining</div>
+        <div class="sval" style="font-size:18px" id="aRemaining">₹0</div>
       </div>
     </div>
-    <div class="prog-block">
-      <div class="tips-title" style="margin-bottom:12px">Spend by Category</div>
+
+    <!-- Category breakdown bars -->
+    <div class="prog-card">
+      <div class="tips-title" style="margin-bottom:14px">Spend by Category</div>
       <div id="analyticsList"></div>
     </div>
+
   </div>
 </div>
 
-<!-- BOTTOM NAV -->
+<!-- ══════════════════════════ BOTTOM NAV ════════════════════════════════ -->
 <nav class="bottom-nav">
   <button class="nav-btn active" id="nav-home" onclick="switchView('home')">
     <i class="ti ti-home"></i>Home
@@ -125,11 +334,14 @@
   <button class="nav-btn" id="nav-expenses" onclick="switchView('expenses')">
     <i class="ti ti-receipt"></i>Expenses
   </button>
+  <button class="nav-btn" id="nav-mf" onclick="switchView('mf')">
+    <i class="ti ti-chart-candle"></i>Funds
+  </button>
   <button class="nav-btn" id="nav-analytics" onclick="switchView('analytics')">
     <i class="ti ti-chart-bar"></i>Analytics
   </button>
 </nav>
 
-<script src="js/app.js"></script>
+<script src="js/app.js?v=4001"></script>
 </body>
 </html>
